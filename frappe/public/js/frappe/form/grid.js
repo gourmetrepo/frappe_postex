@@ -1109,47 +1109,60 @@ export default class Grid {
 		$(this.wrapper)
 			.find(".grid-download")
 			.removeClass("hidden")
-			.on("click", () => {
-				var data = [];
-				var docfields = [];
-				data.push([__("Bulk Edit {0}", [title])]);
-				data.push([]);
-				data.push([]);
-				data.push([]);
-				data.push([__("The CSV format is case sensitive")]);
-				data.push([__("Do not edit headers which are preset in the template")]);
-				data.push(["------"]);
-				$.each(frappe.get_meta(this.df.options).fields, (i, df) => {
-					// don't include the read-only field in the template
-					if (frappe.model.is_value_type(df.fieldtype)) {
-						data[1].push(df.label);
-						data[2].push(df.fieldname);
-						let description = (df.description || "") + " ";
-						if (df.fieldtype === "Date") {
-							description += frappe.boot.sysdefaults.date_format;
+			.on("click", () => {			
+				var filePath = "";
+				if (this.frm.doctype === "Purchase Order") {
+					filePath = "/assets/postex/csv/Bulk_Purchase_Order_Item_Template.csv"
+				}
+
+				if (filePath === "") {
+					// Note: this is the default template for Bulk Purchase Order
+					var data = [];
+					var docfields = [];
+					data.push([__("Bulk Edit {0}", [title])]);
+					data.push([]);
+					data.push([]);
+					data.push([]);
+					data.push([__("The CSV format is case sensitive")]);
+					data.push([__("Do not edit headers which are preset in the template")]);
+					data.push(["------"]);
+					$.each(frappe.get_meta(this.df.options).fields, (i, df) => {
+						// don't include the read-only field in the template
+						if (frappe.model.is_value_type(df.fieldtype)) {
+							data[1].push(df.label);
+							data[2].push(df.fieldname);
+							let description = (df.description || "") + " ";
+							if (df.fieldtype === "Date") {
+								description += frappe.boot.sysdefaults.date_format;
+							}
+							data[3].push(description);
+							docfields.push(df);
 						}
-						data[3].push(description);
-						docfields.push(df);
-					}
-				});
-
-				// add data
-				$.each(this.frm.doc[this.df.fieldname] || [], (i, d) => {
-					var row = [];
-					$.each(data[2], (i, fieldname) => {
-						var value = d[fieldname];
-
-						// format date
-						if (docfields[i].fieldtype === "Date" && value) {
-							value = frappe.datetime.str_to_user(value);
-						}
-
-						row.push(value || "");
 					});
-					data.push(row);
-				});
 
-				frappe.tools.downloadify(data, null, title);
+					// add data
+					$.each(this.frm.doc[this.df.fieldname] || [], (i, d) => {
+						var row = [];
+						$.each(data[2], (i, fieldname) => {
+							var value = d[fieldname];
+
+							// format date
+							if (docfields[i].fieldtype === "Date" && value) {
+								value = frappe.datetime.str_to_user(value);
+							}
+
+							row.push(value || "");
+						});
+						data.push(row);
+					});
+
+					frappe.tools.downloadify(data, null, title);
+				} else {
+					var baseUrl = window.location.origin;
+					var fileUrl = baseUrl + filePath;
+					window.open(fileUrl, '_blank');
+				}
+				
 				return false;
 			});
 	}
