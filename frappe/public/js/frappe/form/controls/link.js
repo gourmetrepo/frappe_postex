@@ -42,6 +42,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				}
 			}, 500);
 		});
+		// throw error on paste event for all link fields
+        this.$input.on("paste", function(e) {
+            frappe.throw(__("Pasting text in fields is not allowed"));
+        });
 		this.$input.on("blur", function () {
 			// if this disappears immediately, the user's click
 			// does not register, hence timeout
