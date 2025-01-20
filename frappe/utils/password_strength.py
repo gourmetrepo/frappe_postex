@@ -6,18 +6,50 @@ from zxcvbn.scoring import ALL_UPPER, START_UPPER
 
 import frappe
 from frappe import _
+import re
 
 
 def test_password_strength(password, user_inputs=None):
 	"""Wrapper around zxcvbn.password_strength"""
-	if len(password) > 128:
-		# zxcvbn takes forever when checking long, random passwords.
-		# repetion patterns or user inputs in the first 128 characters
-		# will still be checked.
-		password = password[:128]
+	# if len(password) > 128:
+	# 	# zxcvbn takes forever when checking long, random passwords.
+	# 	# repetion patterns or user inputs in the first 128 characters
+	# 	# will still be checked.
+	# 	password = password[:128]
 
-	result = zxcvbn(password, user_inputs)
-	result["feedback"] = get_feedback(result.get("score"), result.get("sequence"))
+	# result = zxcvbn(password, user_inputs)
+	# result["feedback"] = get_feedback(result.get("score"), result.get("sequence"))
+	feedback = {"warning": "", "suggestions": []}
+
+	# Rule: At least 8 characters
+	if len(password) < 8:
+		feedback["warning"] = _("Password must be at least 8 characters long.")
+		feedback["suggestions"].append(_("Make your password longer."))
+		return {"score": 0, "feedback": feedback}
+
+	# Rule: At least one number
+	if not re.search(r"[0-9]", password):
+		feedback["warning"] = _("Password must contain at least one number.")
+		feedback["suggestions"].append(_("Include at least one digit in your password."))
+		return {"score": 0, "feedback": feedback}
+
+	# Rule: At least one uppercase character
+	if not re.search(r"[A-Z]", password):
+		feedback["warning"] = _("Password must contain at least one uppercase letter.")
+		feedback["suggestions"].append(_("Include at least one uppercase letter in your password."))
+		return {"score": 0, "feedback": feedback}
+
+	# Rule: At least one lowercase character
+	if not re.search(r"[a-z]", password):
+		feedback["warning"] = _("Password must contain at least one lowercase letter.")
+		feedback["suggestions"].append(_("Include at least one lowercase letter in your password."))
+		return {"score": 0, "feedback": feedback}
+
+	# If all rules pass, return success
+	feedback["warning"] = ""
+	feedback["suggestions"] = [_("Your password meets the requirements.")]
+	result = {"score": 3, "feedback": feedback}
+	
 	return result
 
 
