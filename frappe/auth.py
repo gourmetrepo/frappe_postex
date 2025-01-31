@@ -354,7 +354,7 @@ class CookieManager:
 			return
 
 		# sid expires in 3 days
-		expires = datetime.datetime.now() + datetime.timedelta(days=3)
+		expires = datetime.datetime.now() + datetime.timedelta(days=15)
 		if frappe.session.sid:
 			self.set_cookie("sid", frappe.session.sid, expires=expires, httponly=True)
 		if frappe.session.session_country:
